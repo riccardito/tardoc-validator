@@ -35,3 +35,6 @@ target-version = "py311"
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "SIM"]
 ignore = ["SIM108"]
+
+[tool.ruff.lint.per-file-ignores]
+"tardoc_validator/web.py" = ["E501"]  # the embedded demo page

@@ -1,13 +1,16 @@
 PYTHON ?= python
 CATALOGUE ?= Anhang_A2_Katalog_des_TARDOC_1.4c.xlsx
 
-.PHONY: install demo eval eval-official load test lint
+.PHONY: install demo serve eval eval-official load test lint
 
 install:
 	$(PYTHON) -m pip install -q -e ".[dev]"
 
 demo:
 	$(PYTHON) -m tardoc_validator.cli validate examples/invoices.json; true
+
+serve:
+	$(PYTHON) -m tardoc_validator.cli serve
 
 eval:
 	$(PYTHON) -m tardoc_validator.cli eval -n 1000

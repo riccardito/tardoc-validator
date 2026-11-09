@@ -1,10 +1,20 @@
 # tardoc-validator
 
 [![CI](https://github.com/riccardito/tardoc-validator/actions/workflows/ci.yml/badge.svg)](https://github.com/riccardito/tardoc-validator/actions/workflows/ci.yml)
-![coverage](https://img.shields.io/badge/coverage-98%25-brightgreen)
+![coverage](https://img.shields.io/badge/coverage-%E2%89%A590%25%20enforced%20in%20CI-brightgreen)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 **Checks a Swiss outpatient service list against the TARDOC tariff rules and says, in plain words, what is wrong.**
+
+## What this is, and what you can do with it
+
+A Python library and command-line tool for one job: take the services billed to a patient — tariff positions, quantities, dates, sessions — and tell you, before the invoice leaves, whether TARDOC's rules allow them together, and if not, which rule breaks and why.
+
+- **Check an invoice:** `tardoc-validator validate invoices.json` (or `.csv`), findings as text or JSON.
+- **Show it live:** `make serve` opens a local page where you type the positions someone names, or draw a random case, and see the verdict.
+- **Measure it:** `make eval` runs 1 000 synthetic invoices with known faults and prints recall, false alarms and runtime against a baseline.
+- **Use the full tariff:** `make eval-official` loads the official catalogue you download and runs the same checks over all 1 388 positions.
+- **Build on it:** the rules are YAML and the engine is 130 lines — add a rule kind, plug it into a billing pipeline, or put an explanation layer on top.
 
 ## The problem
 
@@ -43,6 +53,15 @@ A-1002: 7 finding(s)
 ```
 
 Input is JSON or CSV — one row per service, with the patient's birth date and sex. `tardoc-validator validate --json` gives the findings as data; the exit code is 1 when an invoice has an error.
+
+## Live demo
+
+```bash
+make load CATALOGUE=Anhang_A2_Katalog_des_TARDOC_1.4c.xlsx   # once: the full tariff, local only
+make serve                                                    # http://127.0.0.1:8000
+```
+
+The page takes a patient (birth date, sex) and the services. Type them one per line — `AA.00.0010`, `AA.00.0020 x10`, `AG.00.0010 R`, `@2` for a second session — or fill the table, then press **Check**. Codes autocomplete from the catalogue with their official titles. **Random case** draws a generated invoice that is clean, sits exactly at a limit, or carries one planted fault, and after the check the page says what was planted, so an audience can see the engine find it. Without the catalogue the page runs on the 23-position sample. Nothing leaves the machine.
 
 ## How it works
 
@@ -85,6 +104,10 @@ Open:
 - The Generalinvoice XML input of Forum Datenaustausch, and an LLM that explains each finding in billing language, quoting the rule. The engine decides; the model only explains.
 
 This is a portfolio project, not a certified validator.
+
+## Author
+
+Built by Riccard Nef, AI engineer in Swiss healthcare IT — [LinkedIn](https://www.linkedin.com/in/riccard-nef-62683511b/) · [*The Agora Method*](https://medium.com/@stillwaiting/the-agora-method-b62263bde400).
 
 ## Licence
 

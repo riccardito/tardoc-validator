@@ -3,7 +3,8 @@
   tardoc-validator validate <invoices.json|csv> [--rules R] [--json]
   tardoc-validator generate <out.json> [-n N] [--seed S] [--rules R]
   tardoc-validator eval [-n N] [--seed S] [--rules R]
-  tardoc-validator load <Anhang_A2_Katalog_des_TARDOC.xlsx> [-o rules/official/tardoc.yaml]
+  tardoc-validator load <Anhang_A2_Katalog_des_TARDOC.xlsx> [-o rules/official/tardoc-1.4c.yaml]
+  tardoc-validator serve [--rules R] [--port 8000]   a local web page for live demos
 
 Exit code of `validate`: 1 when any invoice has an error finding, else 0.
 """
@@ -71,6 +72,12 @@ def cmd_load(a) -> int:
     return 0
 
 
+def cmd_serve(a) -> int:
+    from .web import default_rules, serve
+    serve(RuleSet.load(Path(a.rules)) if a.rules else default_rules(), a.port)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="tardoc-validator", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -87,9 +94,13 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("--rules")
     lo = sub.add_parser("load")
     lo.add_argument("xlsx")
-    lo.add_argument("-o", "--out", default="rules/official/tardoc.yaml")
+    lo.add_argument("-o", "--out", default="rules/official/tardoc-1.4c.yaml")
+    se = sub.add_parser("serve")
+    se.add_argument("--rules", help="default: rules/official/tardoc-1.4c.yaml if loaded, else the sample")
+    se.add_argument("--port", type=int, default=8000)
     a = ap.parse_args(argv)
-    return {"validate": cmd_validate, "generate": cmd_generate, "eval": cmd_eval, "load": cmd_load}[a.cmd](a)
+    return {"validate": cmd_validate, "generate": cmd_generate, "eval": cmd_eval, "load": cmd_load,
+            "serve": cmd_serve}[a.cmd](a)
 
 
 if __name__ == "__main__":
