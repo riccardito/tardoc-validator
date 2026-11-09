@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Lint
+        run: python -m ruff check .
+      - name: Tests
+        run: python -m pytest --cov --cov-report=term-missing:skip-covered --cov-fail-under=90
+      - name: Demo
+        run: make demo
+      - name: Evaluation (1 000 synthetic invoices)
+        run: make eval
+      - name: No secrets, no official data
+        run: |
+          ! git ls-files | grep -E '\.xlsx$|rules/official/'
+          ! git grep -nE 'gh[pousr]_[A-Za-z0-9]{36,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|sk-(ant-)?[A-Za-z0-9_-]{24,}'

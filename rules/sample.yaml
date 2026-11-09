@@ -1,0 +1,108 @@
+# A small, hand-written rule set over real TARDOC 1.4c positions.
+#
+# The rule facts (limits, cumulation bans, add-ons, age and sex conditions) were
+# read from the openly published catalogue, Anhang A2 "Katalog des TARDOC 1.4c"
+# (OAAT AG). The titles are short English descriptions written for this file.
+# Each position carries only the rules modelled here; the catalogue holds more.
+# For the full set, download the catalogue and run `tardoc-validator load`.
+name: sample-1.4c
+positions:
+  AA.00.0010:
+    title: Medical consultation, first 5 min
+    limits: [{max: 1, per: session}]
+    not_with: [AA.00.0030, AA.00.0080, AA.10.0010, CA.00.0010]
+  AA.00.0020:
+    title: Medical consultation, each further minute (add-on)
+    addon_to: [AA.00.0010]
+    limits: [{max: 15, per: session}]
+  AA.00.0030:
+    title: Home visit, first 5 min
+    limits: [{max: 1, per: session}]
+    not_with: [AA.00.0010, AA.00.0080, AA.10.0010, CA]
+  AA.00.0040:
+    title: Home visit, each further minute (add-on)
+    addon_to: [AA.00.0030]
+    limits: [{max: 15, per: session}]
+  AA.00.0080:
+    title: Medical consilium, per minute
+    limits: [{max: 120, per: days, days: 180}]
+    not_with: [AA.00.0010, AA.00.0030, AA.10, AK.00.0120, AK.00.0130, CA.00.0010]
+  AA.10.0010:
+    title: Telemedical consultation, synchronous, first 5 min
+    limits: [{max: 1, per: session}]
+    not_with: [AA.00.0010, AA.00.0030, CA]
+  CA.00.0010:
+    title: GP consultation, first 5 min
+    limits: [{max: 1, per: session}]
+    not_with: [AA.00.0010, AA.00.0080, AA.00.0030, AA.10.0010]
+  CA.00.0020:
+    title: GP consultation, each further minute (add-on)
+    addon_to: [CA.00.0010]
+    limits: [{max: 15, per: session}]
+    not_with: [AA.00.0030, AA.10.0010]
+  AG.00.0010:
+    title: Joint puncture, first joint
+    side_required: true
+    limits: [{max: 2, per: session}]
+    not_with: [GK.35.0010, KF.10.0120]
+  AK.00.0010:
+    title: Capillary blood draw by non-physician staff
+  AK.00.0020:
+    title: Venous blood draw by non-physician staff
+  AK.00.0100:
+    title: Non-physician ophthalmological services, per minute
+    limits:
+      - {max: 5, per: session}
+      - {max: 2, per: sessions, days: 360}
+  AK.00.0120:
+    title: Supervised medication intake by non-physician staff
+    limits: [{max: 2, per: day}]
+    not_with: [AA.00.0080]
+  AK.00.0130:
+    title: Supervised urine sample, addiction care
+    limits: [{max: 2, per: days, days: 30}]
+    not_with: [AA.00.0080]
+  CG.00.0010:
+    title: Comprehensive examination, children up to 16
+    age: [{op: "<=", n: 16, unit: years, tolerance_days: 0}]
+    limits: [{max: 2, per: days, days: 180}]
+    not_with: [AA.05, CG.00.0130]
+  CG.00.0020:
+    title: Preventive examination in the first month
+    age: [{op: "<", n: 1, unit: months, tolerance_days: 20}]
+    limits: [{max: 1, per: patient}]
+    only_with: [AK.00.0010, AK.00.0020, CG.15.0010]
+  CG.00.0130:
+    title: Developmental paediatric examination, children up to 7, per minute
+    age: [{op: "<=", n: 7, unit: years, tolerance_days: 0}]
+    limits:
+      - {max: 390, per: days, days: 360}
+      - {max: 4, per: sessions, days: 360}
+    not_with: [AA.05, CG.00.0010, CG.00.0170]
+  CG.00.0170:
+    title: Growth assessment, children up to 20
+    age: [{op: "<=", n: 20, unit: years, tolerance_days: 0}]
+    limits: [{max: 2, per: days, days: 360}]
+    not_with: [CG.00.0130]
+  CG.10.0010:
+    title: Difficult ear canal cleaning, children up to 12, per side
+    age: [{op: "<=", n: 12, unit: years, tolerance_days: 0}]
+    side_required: true
+    limits: [{max: 2, per: session}]
+  GA.00.0010:
+    title: Radiation protection flat rate, high-dose imaging
+    limits:
+      - {max: 1, per: session}
+      - {max: 2, per: day}
+  GK.05.0050:
+    title: Ultrasound, external male genital system
+    sex: male
+    limits: [{max: 1, per: session}]
+  GK.10.0050:
+    title: Ultrasound cervical length measurement in pregnancy
+    sex: female
+    limits: [{max: 1, per: session}]
+  VE.05.0010:
+    title: Bladder catheterisation, boy or man
+    sex: male
+    limits: [{max: 1, per: session}]

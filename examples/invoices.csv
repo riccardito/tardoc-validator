@@ -1,0 +1,5 @@
+invoice_id,birth_date,sex,code,date,session,quantity,side
+B-2001,2018-06-01,female,CG.00.0010,2026-03-02,1,1,
+B-2001,2018-06-01,female,CG.10.0010,2026-03-02,1,1,L
+B-2001,2018-06-01,female,CG.00.0010,2026-05-04,2,1,
+B-2001,2018-06-01,female,CG.00.0010,2026-06-01,3,1,

@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+build/
+dist/
+.env
+# the official OAAT files are downloaded by the user and never committed
+rules/official/
+data/
+*.xlsx

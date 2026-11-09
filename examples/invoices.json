@@ -1,0 +1,23 @@
+[
+  {
+    "invoice_id": "A-1001",
+    "patient": {"birth_date": "1984-03-12", "sex": "female"},
+    "services": [
+      {"code": "AA.00.0010", "date": "2026-02-02", "session": "1"},
+      {"code": "AA.00.0020", "date": "2026-02-02", "session": "1", "quantity": 10},
+      {"code": "AG.00.0010", "date": "2026-02-02", "session": "1", "side": "R"}
+    ]
+  },
+  {
+    "invoice_id": "A-1002",
+    "patient": {"birth_date": "1979-11-30", "sex": "male"},
+    "services": [
+      {"code": "AA.00.0010", "date": "2026-02-03", "session": "1"},
+      {"code": "AA.00.0030", "date": "2026-02-03", "session": "1"},
+      {"code": "AA.00.0040", "date": "2026-02-04", "session": "2", "quantity": 18},
+      {"code": "GK.10.0050", "date": "2026-02-04", "session": "2"},
+      {"code": "CG.00.0010", "date": "2026-02-04", "session": "2"},
+      {"code": "AG.00.0010", "date": "2026-02-04", "session": "2"}
+    ]
+  }
+]
