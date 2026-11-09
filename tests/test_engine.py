@@ -61,6 +61,26 @@ def test_cumulation_ban_by_position_and_by_chapter():
     assert kinds(inv(Service("A.00.0010", D, "1"), Service("C.00.0010", D, "1")), rs) == []
 
 
+def test_a_mutual_ban_is_one_finding_naming_both_rules():
+    rs = rules({"A.00.0010": {"not_with": ["B.00.0010"]}, "B.00.0010": {"not_with": ["A"]}})
+    found = validate(inv(Service("A.00.0010", D, "1"), Service("B.00.0010", D, "1")), rs)
+    assert [f.kind for f in found] == ["not-with"]
+    assert {found[0].code, found[0].other} == {"A.00.0010", "B.00.0010"}
+    assert "A.00.0010/not-with" in found[0].message and "B.00.0010/not-with" in found[0].message
+
+
+def test_a_one_sided_ban_keeps_its_own_message():
+    rs = rules({"A.00.0010": {"not_with": ["B.00.0010"]}, "B.00.0010": {}})
+    (f,) = validate(inv(Service("A.00.0010", D, "1"), Service("B.00.0010", D, "1")), rs)
+    assert f.message == "A.00.0010 may not be billed with B.00.0010 in one session"
+
+
+def test_the_same_pair_in_two_sessions_is_two_findings():
+    rs = rules({"A.00.0010": {"not_with": ["B.00.0010"]}, "B.00.0010": {"not_with": ["A.00.0010"]}})
+    s = [Service(c, D, n) for n in ("1", "2") for c in ("A.00.0010", "B.00.0010")]
+    assert kinds(inv(*s), rs) == ["not-with", "not-with"]
+
+
 def test_a_chapter_prefix_does_not_match_a_longer_chapter_name():
     rs = rules({"A.00.0010": {"not_with": ["B.0"]}, "B.05.0010": {}})
     assert kinds(inv(Service("A.00.0010", D, "1"), Service("B.05.0010", D, "1")), rs) == []

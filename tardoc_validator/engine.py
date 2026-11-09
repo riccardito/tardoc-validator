@@ -13,6 +13,7 @@ from __future__ import annotations
 import calendar
 import datetime as dt
 from collections import defaultdict
+from dataclasses import replace
 
 from .model import Finding, Invoice, Service
 from .rules import Limit, Position, RuleSet, matches
@@ -99,6 +100,32 @@ def check_session(pos: Position, session: str, codes: set[str]) -> list[Finding]
     return out
 
 
+def merge_mutual(findings: list[Finding]) -> list[Finding]:
+    """One finding per pair and session when two positions exclude each other.
+
+    TARDOC often writes a cumulation ban on both positions. Checked side by side,
+    the same broken combination would be reported twice -- once from each rule --
+    which a biller reads as two errors. The first finding (the lower code) is kept
+    and reworded; the pair's other rule is named in its message.
+    """
+    seen: dict[tuple, int] = {}
+    out: list[Finding] = []
+    for f in findings:
+        if f.kind != "not-with" or f.other is None:
+            out.append(f)
+            continue
+        key = (f.session, frozenset((f.code, f.other)))
+        if key not in seen:
+            seen[key] = len(out)
+            out.append(f)
+            continue
+        first = out[seen[key]]
+        out[seen[key]] = replace(first, message=(
+            f"{first.code} and {first.other} may not be billed in one session; "
+            f"each position's rules exclude the other ({first.rule_id}, {f.rule_id})"))
+    return out
+
+
 def validate(invoice: Invoice, rules: RuleSet) -> list[Finding]:
     findings: list[Finding] = []
     by_code: dict[str, list[Service]] = defaultdict(list)
@@ -112,6 +139,7 @@ def validate(invoice: Invoice, rules: RuleSet) -> list[Finding]:
         codes = {s.code for s in services}
         for code in sorted(codes & rules.positions.keys()):
             findings += check_session(rules.positions[code], session, codes)
+    findings = merge_mutual(findings)
     for code, mine in sorted(by_code.items()):
         pos = rules.positions.get(code)
         if pos is None:

@@ -50,3 +50,14 @@ def test_load_writes_a_rule_set(tmp_path, capsys):
     wb.save(xlsx)
     assert main(["load", str(xlsx), "-o", str(out)]) == 0
     assert "AA.00.0010" in out.read_text(encoding="utf-8")
+
+
+def test_the_readme_shows_the_real_demo_output(capsys):
+    """The README's demo block is the CLI's output, byte for byte -- a reader checks."""
+    readme = (EX.parent / "README.md").read_text(encoding="utf-8")
+    start = readme.index("```\nA-1001:") + 4
+    shown = readme[start:readme.index("```", start)]
+    main(["validate", str(EX / "invoices.json")])
+    assert shown == capsys.readouterr().out
+    count = int(shown.split("A-1002: ")[1].split(" finding")[0])
+    assert count == shown.split("A-1002:")[1].count("\n  [")

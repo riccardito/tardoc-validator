@@ -43,8 +43,9 @@ make install && make demo && make eval
 ```
 
 ```
-A-1002: 7 finding(s)
-  [error] AA.00.0010/not-with: AA.00.0010 may not be billed with AA.00.0030 in one session
+A-1001: OK
+A-1002: 6 finding(s)
+  [error] AA.00.0010/not-with: AA.00.0010 and AA.00.0030 may not be billed in one session; each position's rules exclude the other (AA.00.0010/not-with, AA.00.0030/not-with)
   [error] AA.00.0040/addon-without-parent: AA.00.0040 is an add-on to AA.00.0030, and none is billed in session 2
   [error] AA.00.0040/max-per-session: AA.00.0040 billed 18 times in session 2; the limit is 15
   [error] AG.00.0010/side-missing: AG.00.0010 needs the side (L, R or B)
@@ -77,7 +78,7 @@ flowchart LR
     E --> V
 ```
 
-**Rules are data.** One YAML entry per position: quantity limits per session, day, patient or rolling window; positions or chapters it may not be billed with; the only positions it may be billed with; the parent an add-on needs; sex and age conditions; whether the side must be given. The engine has one small function per rule kind, so every finding names the rule that made it.
+**Rules are data.** One YAML entry per position: quantity limits per session, day, patient or rolling window; positions or chapters it may not be billed with; the only positions it may be billed with; the parent an add-on needs; sex and age conditions; whether the side must be given. The engine has one small function per rule kind, so every finding names the rule that made it. When two positions ban each other, the combination is one finding that names both rules; in TARDOC 1.4c that is 3 356 of the 3 428 banned pairs (97.9 %), so without it nearly every cumulation error would be reported twice.
 
 **The loader** reads the official catalogue's rule column and parses ten line shapes. On TARDOC 1.4c it turns 57.4 % of the 10 703 rule lines into rules; 11.1 % are permissions ("may be combined with"), which restrict nothing. 31.4 % are not supported yet, almost all of them rules over *Leistungsgruppen* (groups of positions). It prints those shares every time it runs.
 
