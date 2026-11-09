@@ -91,11 +91,10 @@ def cmd_load(a) -> int:
 
 
 def cmd_explain_record(a) -> int:
-    from .explain import live_client, record, recordings_path
+    from .explain import live_client, record, recordings_path, tour
     from .synth import Generator
     rules = _rules(a.rules)
-    findings = [f for inv in load_invoices(SAMPLE.parents[1] / "examples" / "invoices.json")
-                for f in validate(inv, rules)] if not a.rules else []
+    findings = tour(rules)
     for case in Generator(rules, a.seed).cases(a.n):
         findings += validate(case.invoice, rules)
     out = recordings_path(Path(a.rules) if a.rules else SAMPLE)

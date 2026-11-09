@@ -30,6 +30,11 @@
    "model": "claude-opus-5-5",
    "message": "AA.00.0020 is an add-on to AA.00.0010, and none is billed in session S1"
   },
+  "AA.00.0020/max-per-session": {
+   "text": "Rule AA.00.0020/max-per-session means AA.00.0020, the add-on for each further consultation minute, was billed more often in one session than the tariff allows. The cap keeps consultation time within a plausible, comparable range. Check the documented consultation time for that session, reduce the quantity to the permitted maximum, and bill any genuinely longer care only through positions the tariff provides.",
+   "model": "claude-opus-5-5",
+   "message": "AA.00.0020 billed 16 times in session 1; the limit is 15"
+  },
   "AA.00.0030/max-per-session": {
    "text": "Rule AA.00.0030/max-per-session means AA.00.0030 (Home visit, first 5 min) may only be billed up to a set number of times within one session. The tariff limits it because this position covers the opening part of a visit, which happens once per encounter. Check whether the session contains duplicate entries or should be split into separate sessions, then correct the quantity.",
    "model": "claude-opus-5-5",
@@ -49,6 +54,11 @@
    "text": "Rule AA.00.0030/not-with means the home visit base position AA.00.0030 and the GP consultation base position CA.00.0010 cannot appear together in the same session. Both cover the opening minutes of a patient contact, so billing both would pay twice for one encounter. Check where the contact actually took place and keep only the matching position.",
    "model": "claude-opus-5-5",
    "message": "AA.00.0030 and CA.00.0010 may not be billed in one session; each position's rules exclude the other (AA.00.0030/not-with, CA.00.0010/not-with)"
+  },
+  "AA.00.0030/not-with|CA.00.0020": {
+   "text": "Rule AA.00.0030/not-with means the home visit position AA.00.0030 and the GP consultation add-on CA.00.0020 cannot appear in the same session. The tariff keeps each type of encounter billed in its own time-based structure, so the same minutes aren't paid twice. Check which type of encounter actually took place and remove the position that doesn't fit it.",
+   "model": "claude-opus-5-5",
+   "message": "AA.00.0030 and CA.00.0020 may not be billed in one session; each position's rules exclude the other (AA.00.0030/not-with, CA.00.0020/not-with)"
   },
   "AA.00.0040/addon-without-parent": {
    "text": "Rule AA.00.0040/addon-without-parent flags that AA.00.0040, the per-minute home visit add-on, appears in a session without its main service AA.00.0030. Add-ons only extend a main service, so the tariff forbids billing them alone. Check whether AA.00.0030 was omitted or recorded in a different session, and correct the invoice or remove the add-on.",
@@ -95,6 +105,11 @@
    "model": "claude-opus-5-5",
    "message": "AA.10.0010 and CA.00.0010 may not be billed in one session; each position's rules exclude the other (AA.10.0010/not-with, CA.00.0010/not-with)"
   },
+  "AA.10.0010/not-with|CA.00.0020": {
+   "text": "Rule AA.10.0010/not-with means a synchronous telemedical consultation (AA.10.0010) and the GP consultation add-on minutes (CA.00.0020) cannot appear in the same session. The tariff separates these consultation types so the same time isn't paid twice. Check whether the encounter was telemedical or in-person, then keep only the matching position or split genuinely separate sessions.",
+   "model": "claude-opus-5-5",
+   "message": "AA.10.0010 and CA.00.0020 may not be billed in one session; each position's rules exclude the other (AA.10.0010/not-with, CA.00.0020/not-with)"
+  },
   "AG.00.0010/max-per-session": {
    "text": "Rule AG.00.0010/max-per-session caps how often AG.00.0010 (Joint puncture, first joint) can be billed within one session. The tariff limits it because the first-joint puncture covers set-up work that happens only once per session. Check whether extra punctures were recorded under the wrong position, or whether they belong to separate sessions, and correct the quantities.",
    "model": "claude-opus-5-5",
@@ -135,6 +150,11 @@
    "model": "claude-opus-5-5",
    "message": "CA.00.0020 is an add-on to CA.00.0010, and none is billed in session S2"
   },
+  "CA.00.0020/max-per-session": {
+   "text": "Rule CA.00.0020/max-per-session caps how often CA.00.0020, the add-on for each further minute of a GP consultation, may be billed within one session. Tariffs set such caps so time-based add-ons reflect plausible consultation lengths and prevent overbilling. Check the session's recorded consultation time and reduce the billed quantity of CA.00.0020 to the permitted maximum.",
+   "model": "claude-opus-5-5",
+   "message": "CA.00.0020 billed 16 times in session 1; the limit is 15"
+  },
   "CG.00.0010/age": {
    "text": "Rule CG.00.0010/age means position CG.00.0010 may only be billed when the patient's age on the service day falls within the range the tariff defines. Age-restricted positions exist because paediatric examinations differ in content and effort from adult ones. Check the patient's date of birth and the service date, and if both are correct, bill an appropriate adult position instead.",
    "model": "claude-opus-5-5",
@@ -149,6 +169,11 @@
    "text": "Rule CG.00.0010/not-with means CG.00.0010 and CG.00.0130 cannot appear together in the same session. The tariff forbids this because both positions cover overlapping examination work, so billing both would pay twice for the same effort. Check which examination was actually performed in that session and keep only the matching position, removing the other.",
    "model": "claude-opus-5-5",
    "message": "CG.00.0010 and CG.00.0130 may not be billed in one session; each position's rules exclude the other (CG.00.0010/not-with, CG.00.0130/not-with)"
+  },
+  "CG.00.0020/age": {
+   "text": "Rule CG.00.0020/age means position CG.00.0020 may only be billed when the patient's age on the service date falls within the window the tariff defines for this first-month preventive examination. Such rules keep age-specific check-ups tied to the developmental stage they were designed for. Check the patient's birth date and the service date, or bill the examination appropriate for the patient's actual age.",
+   "model": "claude-opus-5-5",
+   "message": "CG.00.0020 requires age < 1 months (+20 days); not met on 2026-03-02"
   },
   "CG.00.0020/max-per-patient": {
    "text": "Rule CG.00.0020/max-per-patient means CG.00.0020 (Preventive examination in the first month) may be billed only a limited number of times for the same patient. The tariff restricts it because this preventive check happens once in that early life period, not repeatedly. Check whether the examination was entered twice by mistake and remove the extra entries.",
@@ -169,6 +194,11 @@
    "text": "Rule CG.00.0130/max-per-360-days caps how often CG.00.0130 may be billed for the same patient within a rolling period, counted across all prior invoices. Such caps keep time-based examinations proportionate and prevent excessive billing. Check the patient's earlier invoices for duplicated or wrongly recorded minutes, and correct or remove the excess quantity.",
    "model": "claude-opus-5-5",
    "message": "CG.00.0130 billed 391 times within 360 days up to 2026-11-12; the limit is 390"
+  },
+  "CG.00.0130/max-sessions-per-360-days": {
+   "text": "Rule CG.00.0130/max-sessions-per-360-days caps how many separate sessions of CG.00.0130 may be billed for the same patient within a rolling period. The tariff sets this cap because developmental examinations are periodic assessments, not ongoing treatment. Check whether every billed session really was a separate developmental examination, and remove or rebill sessions that exceed the cap.",
+   "model": "claude-opus-5-5",
+   "message": "CG.00.0130 billed in 5 sessions within 360 days up to 2026-03-06; the limit is 4"
   },
   "CG.00.0130/not-with|CG.00.0170": {
    "text": "Rule CG.00.0130/not-with means CG.00.0130 and CG.00.0170 cannot both appear on the invoice for the same session. The tariff forbids this because growth assessment overlaps with the developmental paediatric examination, so billing both would pay twice for the same work. Check the session and keep only the position that reflects the service actually provided, removing the other.",

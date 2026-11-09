@@ -26,8 +26,9 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .model import Finding
-from .rules import RuleSet
+from .engine import validate
+from .model import Finding, Invoice, Patient, Service
+from .rules import RuleSet, matches
 
 DEFAULT_MODEL = "claude-opus-5-5"
 PROMPT_VERSION = 2
@@ -151,6 +152,49 @@ class Explainer:
         if problems:
             return Explanation(None, "withheld", model, problems)
         return Explanation(text, source, model)
+
+
+def tour(rules: RuleSet) -> list[Finding]:
+    """One small invoice per rule that breaks it, and the findings they produce.
+
+    Random invoices reach most rules but not all of them; a person typing a case
+    can reach any. The tour visits every rule of the set, so the recordings can.
+    """
+    day = dt.date(2026, 3, 2)
+    adult = Patient(dt.date(1980, 1, 1), "female")
+    out: list[Finding] = []
+
+    def run(services: list[Service], patient: Patient = adult) -> None:
+        out.extend(validate(Invoice("tour", patient, services), rules))
+
+    for code, pos in sorted(rules.positions.items()):
+        side = "R" if pos.side_required else None
+
+        def one(q: int = 1, code: str = code, side: str | None = side) -> Service:
+            return Service(code, day, "1", q, side)
+
+        for lim in pos.limits:
+            if lim.per == "sessions":
+                run([Service(code, day + dt.timedelta(days=i), str(i), 1, side) for i in range(lim.max + 1)])
+            else:
+                run([one(lim.max + 1)])
+        if pos.sex:
+            run([one()], Patient(adult.birth_date, "male" if pos.sex == "female" else "female"))
+        for rule in pos.age:
+            born = day if rule.op in (">=", ">") else dt.date(day.year - 100, 1, 1)
+            run([one()], Patient(born, pos.sex or adult.sex))
+        if pos.side_required:
+            run([Service(code, day, "1")])
+        if pos.addon_to:
+            run([one()])
+        if pos.only_with:
+            other = next(c for c in sorted(rules.positions)
+                         if c != code and not any(matches(c, ref) for ref in pos.only_with))
+            run([one(), Service(other, day, "1")])
+        for other in sorted(rules.positions):
+            if other != code and any(matches(other, ref) for ref in pos.not_with):
+                run([one(), Service(other, day, "1", 1, "R")])
+    return out
 
 
 def ask(client, user_prompt: str, model: str = DEFAULT_MODEL) -> tuple[str | None, str]:

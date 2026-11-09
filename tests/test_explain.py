@@ -20,8 +20,10 @@ from tardoc_validator.explain import (
     load_recordings,
     record,
     recording_key,
+    tour,
 )
 from tardoc_validator.model import load_invoices
+from tardoc_validator.rules import matches
 from tardoc_validator.synth import Generator
 from tardoc_validator.web import App
 
@@ -31,9 +33,10 @@ RECORDED = load_recordings(ROOT / "rules" / "sample.explanations.json")
 
 
 def findings_by_rule() -> dict:
-    """Every error finding the recordings were made for: the examples plus both recording seeds."""
+    """Every error finding the recordings must hold for: the rule tour, the examples, both seeds."""
     out = defaultdict(list)
-    found = [f for inv in load_invoices(ROOT / "examples" / "invoices.json") for f in validate(inv, RULES)]
+    found = tour(RULES) + [f for inv in load_invoices(ROOT / "examples" / "invoices.json")
+                           for f in validate(inv, RULES)]
     for seed, n in ((7, 3000), (99, 8000)):
         found += [f for c in Generator(RULES, seed).cases(n) for f in validate(c.invoice, RULES)]
     for f in found:
@@ -45,8 +48,26 @@ def findings_by_rule() -> dict:
 BY_RULE = findings_by_rule()
 
 
-def test_every_rule_the_engine_reports_has_a_recording():
-    assert set(BY_RULE) == set(RECORDED["entries"])
+def rule_keys(rules: RuleSet) -> set[str]:
+    """Every rule of a set, read from the rule data -- independently of the engine and the tour."""
+    keys = set()
+    for c, p in rules.positions.items():
+        keys |= {f"{c}/{lim.kind}" for lim in p.limits}
+        keys |= {f"{c}/{k}" for k, on in (("sex", p.sex), ("age", p.age), ("side-missing", p.side_required),
+                                          ("addon-without-parent", p.addon_to), ("only-with", p.only_with)) if on}
+        for o in rules.positions:
+            if o != c and any(matches(o, ref) for ref in p.not_with):
+                lo, hi = sorted((c, o))
+                keys.add(f"{lo}/not-with|{hi}")
+    return keys
+
+
+def test_the_tour_reaches_every_rule_of_the_set():
+    assert {recording_key(f) for f in tour(RULES) if f.severity == "error"} == rule_keys(RULES)
+
+
+def test_every_rule_has_a_recording():
+    assert set(BY_RULE) == set(RECORDED["entries"]) == rule_keys(RULES)
 
 
 @pytest.mark.parametrize("key", sorted(RECORDED["entries"]))
