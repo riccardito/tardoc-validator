@@ -102,7 +102,7 @@ Open:
 
 - Leistungsgruppen — the 31 % — need the group sheet. They are the next rule kind.
 - Units beyond session, day and patient: per side, per main service, per sample.
-- The Generalinvoice XML input of Forum Datenaustausch, and an LLM that explains each finding in billing language, quoting the rule. The engine decides; the model only explains.
+- The Generalinvoice XML input of Forum Datenaustausch.
 
 This is a portfolio project, not a certified validator.
 

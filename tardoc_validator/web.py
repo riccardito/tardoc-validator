@@ -8,7 +8,10 @@ binds to 127.0.0.1.
   GET  /api/info            the loaded rule set
   GET  /api/search?q=AA.00  positions whose code or title matches
   GET  /api/random          a generated invoice; its injected fault is returned separately
-  POST /api/validate        {"patient": {...}, "services": [...]} -> findings
+  POST /api/validate        {"patient": {...}, "services": [...]} -> findings, each with its explanation
+
+Explanations come from the recordings beside the rule set (see `explain.py`); with
+`--live` the model is asked where nothing is recorded. The engine decides either way.
 """
 from __future__ import annotations
 
@@ -28,13 +31,18 @@ OFFICIAL = ROOT / "rules" / "official" / "tardoc-1.4c.yaml"
 SAMPLE = ROOT / "rules" / "sample.yaml"
 
 
+def default_rules_path() -> Path:
+    return OFFICIAL if OFFICIAL.exists() else SAMPLE
+
+
 def default_rules() -> RuleSet:
-    return RuleSet.load(OFFICIAL if OFFICIAL.exists() else SAMPLE)
+    return RuleSet.load(default_rules_path())
 
 
 class App:
-    def __init__(self, rules: RuleSet, seed: int | None = None):
+    def __init__(self, rules: RuleSet, seed: int | None = None, explainer=None):
         self.rules = rules
+        self.explainer = explainer
         self.gen = Generator(rules, seed if seed is not None else random.randrange(1 << 30))
 
     def info(self) -> dict:
@@ -67,7 +75,15 @@ class App:
         titles = {c: self.rules.positions[c].title for c in {s.code for s in inv.services}
                   if c in self.rules.positions}
         return {"valid": not any(f.severity == "error" for f in findings),
-                "findings": [f.to_dict() for f in findings], "titles": titles}
+                "findings": [self._with_explanation(f) for f in findings], "titles": titles}
+
+    def _with_explanation(self, f) -> dict:
+        d = f.to_dict()
+        if self.explainer is not None:
+            note = self.explainer.explain(f)
+            if note.source != "none":
+                d["explanation"] = note.to_dict()
+        return d
 
 
 def handler(app: App) -> type[BaseHTTPRequestHandler]:
@@ -111,8 +127,8 @@ def handler(app: App) -> type[BaseHTTPRequestHandler]:
     return Handler
 
 
-def serve(rules: RuleSet, port: int = 8000) -> None:
-    server = ThreadingHTTPServer(("127.0.0.1", port), handler(App(rules)))
+def serve(rules: RuleSet, port: int = 8000, explainer=None) -> None:
+    server = ThreadingHTTPServer(("127.0.0.1", port), handler(App(rules, explainer=explainer)))
     print(f"tardoc-validator: {len(rules.positions)} positions ({rules.name}) -> http://127.0.0.1:{port}")
     try:
         server.serve_forever()
@@ -142,6 +158,8 @@ button.primary{background:var(--accent);border-color:var(--accent);color:#fff}bu
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .verdict{font-size:18px;font-weight:600}.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
 .finding{padding:8px 0;border-bottom:1px solid var(--line)}.finding code{font-weight:600}
+.why{margin-top:8px;padding:8px 10px;border-left:3px solid var(--accent);background:var(--bg);border-radius:0 6px 6px 0;font-size:14px}
+.why .src{display:block;color:var(--muted);font-size:12px;margin-bottom:2px}.why.withheld{border-color:var(--warn)}
 .title{color:var(--muted);font-size:13px}.hint{color:var(--muted);font-size:13px;margin-top:6px}
 </style></head><body><main>
 <h1>tardoc-validator</h1><p class="sub" id="info">loading rules…</p>
@@ -189,10 +207,13 @@ $('#check').onclick=()=>{const services=[...rows.children].map(tr=>({code:tr.que
  side:tr.querySelector('.side').value||null})).filter(s=>s.code);
  fetch('/api/validate',{method:'POST',headers:{'Content-Type':'application/json'},
   body:JSON.stringify({patient:{birth_date:$('#bd').value,sex:$('#sex').value},services})}).then(r=>r.json()).then(show)};
+function why(e){if(!e)return '';
+ if(e.text)return `<div class="why"><span class="src">Why — explained by ${esc(e.model||'the model')} (${esc(e.source)}); the engine decided</span>${esc(e.text)}</div>`;
+ return `<div class="why withheld"><span class="src">Explanation withheld by the guard</span>${esc((e.problems||[]).join('; '))}</div>`}
 function show(r){const box=$('#result');box.hidden=false; if(r.error){box.innerHTML=`<p class="bad">${esc(r.error)}</p>`;return}
  let h=`<p class="verdict ${r.valid?'ok':'bad'}">${r.valid?'✓ Valid — no rule broken':'✗ '+r.findings.filter(f=>f.severity==='error').length+' rule(s) broken'}</p>`;
  for(const f of r.findings)h+=`<div class="finding"><span class="${f.severity==='error'?'bad':'warn'}">[${f.severity}]</span> <code>${esc(f.rule_id)}</code><br>${esc(f.message)}
-  ${r.titles[f.code]?`<div class="title">${esc(f.code)}: ${esc(r.titles[f.code])}</div>`:''}</div>`;
+  ${r.titles[f.code]?`<div class="title">${esc(f.code)}: ${esc(r.titles[f.code])}</div>`:''}${why(f.explanation)}</div>`;
  if(planted)h+=`<p class="hint">Planted in this case: <b>${planted.faults.length?planted.faults.map(x=>esc(x.kind+' · '+x.code+(x.other?' + '+x.other:''))).join(', '):esc(planted.label)+', nothing broken on purpose'}</b></p>`;
  box.innerHTML=h}
 addRow();
