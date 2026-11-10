@@ -11,7 +11,7 @@ from matplotlib.patches import FancyBboxPatch
 BG, INK, MUTED, PANEL = "#12151b", "#e6e9ef", "#9aa3b2", "#1b2029"
 GOOD, WARN, BAD = "#45c08a", "#e3b341", "#ff8f6b"
 TILES = [("100.0 %", "recall, 1 000 synthetic invoices", GOOD),
-         ("0.0 %", "false alarms, incl. 84 boundary probes", GOOD),
+         ("0.0 %", "false alarms, same invoices", GOOD),
          ("8.4 %", "recall of the usual baseline", BAD)]
 # The engine's own messages for the demo case (AA.00.0010, AA.00.0030, AA.00.0020 x20).
 FINDINGS = [("error", "AA.00.0010 and AA.00.0030 may not be billed in one session", BAD),
